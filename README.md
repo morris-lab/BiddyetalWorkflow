@@ -1,8 +1,3 @@
----
-output: 
-  html_document: 
-    keep_md: yes
----
 # CellTagWorkflow
 
 This repository will contain our CellTag workflow.
