@@ -107,3 +107,90 @@ clones <- CloneCalling(Jaccard.Matrix = celltag.jac, output.dir = "./", output.f
 
 # Lineage and Network Visualization
 
+Load functions required for CellTag lineage network construction and Visualization
+
+```r
+# this script require “foreach” and "networkD3" package. Please install them beforehand.
+library(foreach)
+library(networkD3)
+
+source("./scripts/function_source_for_network_visualization.R")
+source("./scripts/function_source_for_network_construction.R")
+```
+
+Load Celltag data.
+
+```r
+# The called CellTag V1, V2 and V3 will be used to construct Lineage network graph.
+# Input Celltag data should be Nx3 matrix. Each row represents cell name (cell barcode) and each column represents Celltag name.
+# See the example (./input_data_for_network_construction/)
+
+# load celltag table
+celltag_data <- read.table(PATH_TO_YOUR_CELLTAG_TABLE, stringsAsFactors = F)
+head(celltag_data)
+```
+Construct Network.
+
+```r
+# please change the celltag name to c(“CellTagV1”, “CellTagV2”, “CellTagV3”) if you are using different name
+colnames(celltag_data) <- c("CellTagV1", "CellTagV2", "CellTagV3")
+
+# the first step is to construct linkList, which represents network structure.
+# Celltag data will be converted into LinkList. 
+#First, clonal population that share the same celltag is combined to make subnetwork. Then, subnewtorks will be combined further if they are originated from same mother.
+
+linkList <- convertCellTagMatrix2LinkList(celltag_data)
+```
+
+Make Node list
+
+```r
+Nodes <- getNodesfromLinkList(linkList)
+head(Nodes)
+```
+(Optional) Add data to Node list.
+
+```r
+# If you want to visualize some information on the network graph, you can add any information to Node list. 
+# the rownames of additional_data should be same format as “node_name_unmodified” in Nedes
+# See the example (./input_data_for_network_construction/meta_data.txt)
+
+additional_data <- read.table(PATH_TO_YOUR_ADDITIONAL_DATA_TABLE, stringsAsFactors = F)
+Nodes <- addData2Nodes(Nodes, additional_data)
+head(Nodes)
+
+```
+
+Save results.
+
+```r
+# Save results before visualization.
+# We provides Rscript for the visualization below, but you can use another software for network visualization. 
+# This Nodes and link file can be imported to Cytoscape for the visualization.
+
+write.table(Nodes, file = "./output/Nodes.txt")
+write.table(linkList, file = "./output/links.txt")
+```
+
+Load network data.
+
+```r
+Nodes <- read.table("./output/Nodes.txt", stringsAsFactors = F)
+linkList <- read.table("./output/links.txt", stringsAsFactors = F)
+head(Nodes)
+```
+
+Visualize subnetwork as Force-directed network
+
+```r
+# In general, wholw network graph is too large to visualize in R.
+# You can visualize sub-network which show the lineage of single clone instead of whole network graph. 
+# you can pick up sub-network by selecting CellTag clone id.
+
+# Parameters
+# tag: CellTag clone id
+# overlay: you can overlay information on network graph
+drawSubnet(tag = "CellTagV1_108", overlay = "Reprogramming.Day", linkList = linkList, Nodes = Nodes )
+
+```
+
