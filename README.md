@@ -29,8 +29,14 @@ Now we can extract the CellTag reads from the BAM file we just downloaded. We do
 
 
 ```bash
-
+#V1
 samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'GGT[ACTG]{8}GAATTC' > v1.celltag.reads.out
+
+#V2
+samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'GTGATG[ACTG]{8}GAATTC' > v2.celltag.reads.out
+
+#V3
+samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'TGTACG[ACTG]{8}GAATTC' > v3.celltag.reads.out
 
 ```
 
@@ -38,8 +44,14 @@ With the CellTag reads extracted we use a custom gawk script to parse the file a
 
 
 ```bash
-
+#V1
 ./scripts/celltag.parse.reads.10x.sh -v tagregex="CCGGT([ACTG]{8})GAATTC" v1.celltag.reads.out > v1.celltag.parsed.tsv
+
+#V2
+./scripts/celltag.parse.reads.10x.sh -v tagregex="GTGATG([ACTG]{8})GAATTC" v1.celltag.reads.out > v1.celltag.parsed.tsv
+
+#V3
+./scripts/celltag.parse.reads.10x.sh -v tagregex="TGTACG([ACTG]{8})GAATTC" v1.celltag.reads.out > v1.celltag.parsed.tsv
 
 ```
 
