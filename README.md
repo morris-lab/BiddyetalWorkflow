@@ -1,7 +1,4 @@
----
-title: "CellTag Workflow"
-date: "November 27, 2018"
----
+# CellTag Workflow
 
 This repository will contain our CellTag workflow.
 
