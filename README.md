@@ -1,4 +1,11 @@
-# CellTagWorkflow
+---
+title: "CellTag Workflow"
+output:
+  html_document: 
+    keep_md: yes
+    number_sections: yes
+  pdf_document: default
+---
 
 This repository will contain our CellTag workflow.
 
@@ -6,9 +13,19 @@ Here is the link to the GEO DataSet which contains all of the sequencing data we
 
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99915
 
-From these data we will select one timepoint to use as an example of our CellTag processing.
+From these data we will select one timepoint to use as an example of our CellTag processing and analysis.
 
 We will use data collected from Timecourse 1 at Day 15. The link to the SRA for this sample is [here](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR7347033).
+
+We are using the data from Day 15 because we should be able to call clones using each of the CellTag versions (CellTag^MEF^, CellTag^Day3^, and CellTag^Day13^)
+
+You can follow along with this workflow by cloning or downloading this repository and executing the commands, using the appropriate paths for the data you are processing.
+
+In general this workflow is broken up into three sections.
+
+1. CellTag Extraction and Quantification
+2. The identification of Clones
+3. Lineage Visualization
 
 # CellTag Extraction and Quantification
 
