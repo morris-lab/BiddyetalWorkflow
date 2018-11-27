@@ -34,3 +34,12 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+#Files for analysis
+*.celltag.parsed.tsv
+*.celltag.reads.out
+hf1.d15.*
+
+#Intermediate knitr files
+README.Rmd
+README.pdf
