@@ -6,7 +6,7 @@ Here is the link to the GEO DataSet which contains all of the sequencing data we
 
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99915
 
-The CellTag libraries are available from AddGene [here](https://www.addgene.org/pooled-library/morris-lab-celltag/). This link also contains whitelists for each CellTag library as well as sequence information for each library.
+The CellTag libraries are available from AddGene [here](). This link also contains whitelists for each CellTag library as well as sequence information for each library.
 
 The CellTag libraries available at AddGene are labeled CellTag-V1, CellTag-V2, and CellTag-V3. These labels correspond to CellTag^MEF^, CellTag^D3^, and CellTag^D13^ respectively.
 
