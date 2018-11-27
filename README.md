@@ -1,10 +1,6 @@
 ---
 title: "CellTag Workflow"
-output:
-  html_document: 
-    keep_md: yes
-    number_sections: yes
-  pdf_document: default
+date: "November 27, 2018"
 ---
 
 This repository will contain our CellTag workflow.
