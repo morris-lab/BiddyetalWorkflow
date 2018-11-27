@@ -8,7 +8,7 @@ https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99915
 
 The CellTag libraries are available from AddGene [here](https://www.addgene.org/pooled-library/morris-lab-celltag/). This link also contains whitelists for each CellTag library as well as sequence information for each library.
 
-The CellTag libraries available at AddGene are labeled CellTag-V1, CellTag-V2, and CellTag-V3. These labels correspond to CellTag^MEF^, CellTag^D3^, and CellTag^D13^ respectively.
+The CellTag libraries available at AddGene are labeled CellTag-V1, CellTag-V2, and CellTag-V3. These labels correspond to CellTag<sup>MEF</sup>, CellTag<sup>D3</sup>, and CellTag<sup>D13</sup> respectively.
 
 From our GEO DataSet we will select one timepoint to use as an example of our CellTag processing and analysis.
 
@@ -20,7 +20,7 @@ In general this workflow is broken up into three sections.
 2. The Identification of Clones
 3. Lineage Visualization
 
-We are using the data from Day 15 because we should be able to call clones using each of the CellTag versions (CellTag^MEF^, CellTag^Day3^, and CellTag^Day13^)
+We are using the data from Day 15 because we should be able to call clones using each of the CellTag versions (CellTag<sup>MEF</sup>, CellTag<sup>Day3</sup>, and CellTag<sup>Day13</sup>)
 
 You can follow along with this workflow by cloning or downloading this repository and executing the commands, using the appropriate paths for the data you are processing.
 
@@ -47,7 +47,7 @@ wget https://sra-download.ncbi.nlm.nih.gov/traces/sra65/SRZ/007347/SRR7347033/hf
 
 Now that we have downloaded the BAM file we can search for any read containing a CellTag motif. First, because the BAM file is binary we need to view the file using a tool such as samtools.
 We do this by using the samtools view command. The output from this command is then piped into grep. We use grep and a regular expression to search for CellTag containing reads.
-The reads which contain CellTags are then written to an output file. The CellTag motifs for CellTag^MEF^, CellTag^D3^, and CellTag^D13^ are unique. This allows us to distinguish between CellTags originating from different libraries. The commands below will identify the CellTags for each CellTag version.
+The reads which contain CellTags are then written to an output file. The CellTag motifs for CellTag<sup>MEF</sup>, CellTag<sup>D3</sup>, and CellTag<sup>D13</sup> are unique. This allows us to distinguish between CellTags originating from different libraries. The commands below will identify the CellTags for each CellTag version.
 
 We use the *.possorted_genome_bam.bam output file from the 10x CellRanger pipeline, because each read has been tagged with its associated Cell Barcode, UMI, and aligned genes.
 
@@ -68,7 +68,7 @@ samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'TGTACG[ACTG]{8}GAATTC'
 With the CellTag reads extracted we use a custom gawk script to parse the file and retain only the information we need. This scripts identifies and extracts the CellTag, Cell Barcode, and UMI sequences associated with each CellTag read. Furthermore, the read ID, read sequence, and any genes the read aligned to are extracted as well. This allows us to accurately quantify each CellTag and associate the CellTags with the correct cells.
 The output of this script is a tab delimited file with the following collumns: Read.ID, Read.Seq, Cell.BC, UMI, Cell.Tag, Gene.
 We will use this file to quantify and filter the CellTag data. 
-Note that the regular expression identifying CellTag^MEF^ has two bases added to the beginning. This is a "stricter" CellTag motif which helps filter out some erroneous CellTag reads.
+Note that the regular expression identifying CellTag<sup>MEF</sup> has two bases added to the beginning. This is a "stricter" CellTag motif which helps filter out some erroneous CellTag reads.
 
 This command calls the script `celltag.parse.reads.10x.sh` from the script directory and passes two arguments to the script. 
 
@@ -84,18 +84,19 @@ Finally, the output from this script is written to the file v1.celltag.parsed.ts
 
 ```bash
 #bash
-#V1
+#MEF
 ./scripts/celltag.parse.reads.10x.sh -v tagregex="CCGGT([ACTG]{8})GAATTC" v1.celltag.reads.out > v1.celltag.parsed.tsv
 
-#V2
+#D3
 ./scripts/celltag.parse.reads.10x.sh -v tagregex="GTGATG([ACTG]{8})GAATTC" v2.celltag.reads.out > v2.celltag.parsed.tsv
 
-#V3
+#D13
 ./scripts/celltag.parse.reads.10x.sh -v tagregex="TGTACG([ACTG]{8})GAATTC" v3.celltag.reads.out > v3.celltag.parsed.tsv
 
 ```
 
-Now with the parsed reads we will create a Cell by CellTag Matrix.
+Now that the reads have been parsed we can quantify the CellTag for each cell and create a Cell x CellTag matrix.
+We accomplish this using a custom R script that can be found in the `/scripts/` directory. 
 
 
 
