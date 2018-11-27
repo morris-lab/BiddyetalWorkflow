@@ -103,8 +103,21 @@ Finally, the output from this script is written to the file v1.celltag.parsed.ts
 
 ```
 
-Now that the reads have been parsed we can quantify the CellTag for each cell and create a Cell x CellTag matrix.
-We accomplish this using a custom R script that can be found in the `/scripts/` directory. 
+Now that the reads have been parsed we can quantify the CellTag for each cell and create a Cell Barcode x CellTag matrix.
+We accomplish this using a custom R script that can be found in the `/scripts/` directory.
+This script groups CellTags by Cell Barcodes and then counts the number of unique UMIs for each Cell Barcode x CellTag pair. Any Cell Barcodes not present in the filtered 10x CellRanger results are filtered out. This creates a CellTag UMI count matrix which is then used to identify clones.
+
+The command `Rscript` allows you  to run the custom R script `matrix.count.celltags.R` from the command line.
+This script requires three arguments:
+
+1. `hf1.d15.barcodes.tsv`
+  + This is the output for this timepoint from the 10x CellRanger pipeline. The file contains a list of all cell barcodes identified in the filtered dataset.
+  
+2. `v1.celltag.parsed.tsv`
+  + This is the output file from the previous command. It contains the parsed CellTag read data.
+  
+3. `hf1.d15.v1`
+  + This argument is a prefix that will be used to uniquely identify output files from the script.
 
 
 
