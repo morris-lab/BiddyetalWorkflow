@@ -43,3 +43,4 @@ hf1.d15.*
 #Intermediate knitr files
 README.Rmd
 README.pdf
+README.html
