@@ -6,7 +6,7 @@ Here is the link to the GEO DataSet which contains all of the sequencing data we
 
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99915
 
-The CellTag libraries are available from AddGene [here](). This link also contains whitelists for each CellTag library as well as sequence information for each library.
+The CellTag libraries are available from AddGene [here](https://www.addgene.org/pooled-library/morris-lab-celltag/). This link also contains whitelists for each CellTag library as well as sequence information for each library.
 
 The CellTag libraries available at AddGene are labeled CellTag-V1, CellTag-V2, and CellTag-V3. These labels correspond to CellTag^MEF^, CellTag^D3^, and CellTag^D13^ respectively.
 
@@ -47,24 +47,39 @@ wget https://sra-download.ncbi.nlm.nih.gov/traces/sra65/SRZ/007347/SRR7347033/hf
 
 Now that we have downloaded the BAM file we can search for any read containing a CellTag motif. First, because the BAM file is binary we need to view the file using a tool such as samtools.
 We do this by using the samtools view command. The output from this command is then piped into grep. We use grep and a regular expression to search for CellTag containing reads.
-The reads which contain CellTags are then written to an output file. The CellTag motifs for CellTag^MEF^, CellTag^D3^, and CellTag^D13^ are unique. This allows us to distinguish between CellTags originating from different libraries. 
+The reads which contain CellTags are then written to an output file. The CellTag motifs for CellTag^MEF^, CellTag^D3^, and CellTag^D13^ are unique. This allows us to distinguish between CellTags originating from different libraries. The commands below will identify the CellTags for each CellTag version.
+
+We use the *.possorted_genome_bam.bam output file from the 10x CellRanger pipeline, because each read has been tagged with its associated Cell Barcode, UMI, and aligned genes.
 
 
 ```bash
 #bash
-#V1
+#MEF
 samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'GGT[ACTG]{8}GAATTC' > v1.celltag.reads.out
 
-#V2
+#D3
 samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'GTGATG[ACTG]{8}GAATTC' > v2.celltag.reads.out
 
-#V3
+#D13
 samtools view hf1.d15.possorted_genome_bam.bam | grep -P 'TGTACG[ACTG]{8}GAATTC' > v3.celltag.reads.out
 
 ```
 
-With the CellTag reads extracted we use a custom gawk script to parse the file and retain only the information we need.
+With the CellTag reads extracted we use a custom gawk script to parse the file and retain only the information we need. This scripts identifies and extracts the CellTag, Cell Barcode, and UMI sequences associated with each CellTag read. Furthermore, the read ID, read sequence, and any genes the read aligned to are extracted as well. This allows us to accurately quantify each CellTag and associate the CellTags with the correct cells.
+The output of this script is a tab delimited file with the following collumns: Read.ID, Read.Seq, Cell.BC, UMI, Cell.Tag, Gene.
+We will use this file to quantify and filter the CellTag data. 
+Note that the regular expression identifying CellTag^MEF^ has two bases added to the beginning. This is a "stricter" CellTag motif which helps filter out some erroneous CellTag reads.
 
+This command calls the script `celltag.parse.reads.10x.sh` from the script directory and passes two arguments to the script. 
+
+1. The variable "tagregex" is set using the `-v tagregex=` option.
+  + The `tagregex` variable is the regular expression which defines the CellTag motif of interest.
+  + It is important to surround the [ACTG]{8} with parentheses, as this defines the CellTag sequence as a capture group in the regular expression.
+  
+2. The input file `v1.celltag.reads.out`.
+  + This is the output file from the grep command above.
+  
+Finally, the output from this script is written to the file v1.celltag.parsed.tsv
 
 
 ```bash
@@ -89,6 +104,8 @@ Now with the parsed reads we will create a Cell by CellTag Matrix.
 Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v1.celltag.parsed.tsv hf1.d15.v1
 
 ```
+
+This process of identifying, extracting, and quantifying CellTag information is very similar to the processing necessary for REAP-Seq, CITE-Seq, and Feature Barcoding data. We are currently working on a more general CellTag processing workflow utilizing the tools available for processing these similar data types. 
 
 
 # 2. Clone Calling
