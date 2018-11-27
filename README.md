@@ -1,12 +1,4 @@
----
-title: "CellTag Workflow"
-author: "Brent Biddy"
-date: "2018-11-27"
-output:
-  html_document:
-    keep_md: TRUE
-  pdf_document: default
----
+# CellTag Workflow
 
 This repository will contain our CellTag workflow.
 
