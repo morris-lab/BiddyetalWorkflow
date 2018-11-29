@@ -1,12 +1,3 @@
----
-title: "CellTag Workflow"
-author: "Brent Biddy"
-date: "2018-11-29"
-output:
-  html_document:
-    keep_md: TRUE
-  pdf_document: default
----
 
 # CellTag Workflow
 
