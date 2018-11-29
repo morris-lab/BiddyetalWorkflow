@@ -1,4 +1,4 @@
-#CellTag Workflow
+# CellTag Workflow
 
 This repository contains our CellTag workflow.
 
