@@ -1,6 +1,6 @@
-# CellTag Workflow
+#CellTag Workflow
 
-This repository will contain our CellTag workflow.
+This repository contains our CellTag workflow.
 
 Here is the link to the GEO DataSet which contains all of the sequencing data we generated.
 
@@ -111,11 +111,16 @@ This script requires three arguments:
 3. `hf1.d15.v1`
   + This argument is a prefix that will be used to uniquely identify output files from the script.
 
+This step should be run for each CellTag version independently. 
 
 
 ```bash
 #bash
 Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v1.celltag.parsed.tsv hf1.d15.v1
+
+Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v2.celltag.parsed.tsv hf1.d15.v2
+
+Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v3.celltag.parsed.tsv hf1.d15.v3
 
 ```
 
@@ -124,11 +129,13 @@ This process of identifying, extracting, and quantifying CellTag information is 
 
 # 2. Clone Calling
 
-Load functions required for clone calling
+The remaining analysis, Clone Calling and Lineage Visualiztion, will be performed in R. It is necesarry to perform the clone calling independently for each of the CellTag versions being analyzed.
 
+First, we must load the required R packages and functions used to perform this analysis. The packages are all available through CRAN.
 
 
 ```r
+#R
 library(igraph)
 library(proxy)
 library(corrplot)
@@ -138,43 +145,131 @@ source("./scripts/CellTagCloneCalling_Function.R")
 ```
 
 
-Load CellTag Matrix and create binary matrix.
+Now that the necessary packages are loaded we will load the CellTag matrices for each CellTag version.
+This is accomplished by reading the `.Rds` file which is output by the `matrix.count.celltags.R` script.
+Once the CellTag matrices are loaded we set the rownames for each matrix to the Cell Barcodes present in the matrix, and then remove the column containing the Cell Barcodes.
+Now that the data has been formatted correctly we use the `SingleCellDataBinarization` function to convert the CellTag UMI count matrices into binary matrices.
 
+The `SingleCellDataBinarization` function take the following arguments:
 
-
+1. `celltag.dat`
+  + This is the object containing the CellTag UMI matrix
+2. `tag.cutoff`
+  + This argument filters the CellTags based on their UMI counts.
+    Any Cell Barcode/CellTag pair with a UMI count less than this cutoff will be disregarded.
+      
 
 ```r
-celltag.mat <- readRDS("./hf1.d15.v1.celltag.matrix.Rds")
+#R
+mef.mat <- readRDS("./hf1.d15.v1.celltag.matrix.Rds")
 
-rownames(celltag.mat) <- celltag.mat$Cell.BC
+d3.mat <- readRDS("./hf1.d15.v2.celltag.matrix.Rds")
 
-celltag.mat <- celltag.mat[, -1]
+d13.mat <- readRDS("./hf1.d15.v3.celltag.matrix.Rds")
 
-celltag.bin <- SingleCellDataBinarization(celltag.dat = celltag.mat, 2)
+rownames(mef.mat) <- mef.mat$Cell.BC
+
+rownames(d3.mat) <- d3.mat$Cell.BC
+
+rownames(d13.mat) <- d13.mat$Cell.BC
+
+mef.mat <- mef.mat[,-1]
+
+d3.mat <- d3.mat[,-1]
+
+d13.mat <- d13.mat[,-1]
+
+mef.bin <- SingleCellDataBinarization(celltag.dat = mef.mat, 2)
+
+d3.bin <- SingleCellDataBinarization(celltag.dat = d3.mat, 2)
+
+d13.bin <- SingleCellDataBinarization(celltag.dat = d13.mat, 2)
 ```
 
 
-Filter CellTag matrix
+Now we have a binary CellTag matrix for each CellTag version. We will perform a few filtering steps before we identify clones.
+First, each CellTag matrix will be filtered based on the CellTag Whitelist for the respective CellTag version.
+This is done using the `SingleCEllDataWhitelist` function with the following arguments:
+1. `celltag.dat`
+  + This is the object containing the binary CellTag matrix.
+2. `whitels.cell.tag.file`
+  + This is the csv file which contains the CellTag whitelist for the correct CellTag version.
+  
+This filters the CellTag matrix and removes any CellTags which are not present in the CellTag whitelist.
+The CellTag whitelists were created by sequencing each CellTag library version. Then CellTags which were in the ninetieth percentile of read counts were included in the whitelist.
+This allows us to determine which CellTags are truly present in the CellTag library. It is then possible to identify CellTag sequences which are the result of PCR and sequencing errors, allowing us to filter or correct the CellTag sequence.
 
+We next filter cells based on their number of expressed CellTags. This is done using the function `MetricBasedFilering`.
+
+1. `whitelisted.celltag.data`
+  + This argument is the object which contains the whitelist filtered binary CellTag matrix.
+2. `cutoff`
+  + This is an argument defining the cutoff for the number of CellTags per cell.
+3. `comparison`
+  + This argument determines whether cells with a number of CellTags greater than or less than the cutoff are filtered from the dataset.
+  
+These filtering steps are performed individually for each CellTag version dataset.
 
 
 ```r
-celltag.filt <- SingleCellDataWhitelist(celltag.dat = celltag.bin, whitels.cell.tag.file = "whitelist/V1.CellTag.Whitelist.csv")
+#R
+mef.filt <- SingleCellDataWhitelist(celltag.dat = mef.bin, whitels.cell.tag.file = "whitelist/V1.CellTag.Whitelist.csv")
 
-celltag.filt <- MetricBasedFiltering(whitelisted.celltag.data = celltag.filt, cutoff = 20, comparison = "less")
+d3.filt <- SingleCellDataWhitelist(celltag.dat = d3.bin, whitels.cell.tag.file = "whitelist/V2.CellTag.Whitelist.csv")
 
-celltag.filt <- MetricBasedFiltering(whitelisted.celltag.data = celltag.filt, cutoff = 2, comparison = "greater")
+d13.filt <- SingleCellDataWhitelist(celltag.dat = d13.bin, whitels.cell.tag.file = "whitelist/V3.CellTag.Whitelist.csv")
+
+
+mef.filt <- MetricBasedFiltering(whitelisted.celltag.data = mef.filt, cutoff = 20, comparison = "less")
+
+d3.filt <- MetricBasedFiltering(whitelisted.celltag.data = d3.filt, cutoff = 20, comparison = "less")
+
+d13.filt <- MetricBasedFiltering(whitelisted.celltag.data = d13.filt, cutoff = 20, comparison = "less")
+
+
+mef.filt <- MetricBasedFiltering(whitelisted.celltag.data = mef.filt, cutoff = 2, comparison = "greater")
+
+d3.filt <- MetricBasedFiltering(whitelisted.celltag.data = d3.filt, cutoff = 2, comparison = "greater")
+
+d13.filt <- MetricBasedFiltering(whitelisted.celltag.data = d13.filt, cutoff = 2, comparison = "greater")
 ```
 
 
-Now Call Clone based on Jaccard Similarity
+Now that the CellTag matrices have been filtered we can call clones! Clones are identified based on the Jaccard similarity of each cells CellTag signature.
+First, we calculate the Jaccard similarity between each cell, using the `JaccardAnalysis` function.
+
+1. `whitelisted.celltag.data`
+  + This is the object containing the filtered binary CellTag matrix.
+2. `plot.corr`
+  + This is an option to plot the pairwise correlation between each cell.
+  + This plot assists in visualizing clones.
+  + The plot is saved as a pdf in the current working directory.
+  
+With the Jaccard similarities between each cell calculated we can now identify clonally related cells and define clones present in the dataset.
+The clone calling is performed using the function `CloneCalling`.
+
+1. `Jaccard.Matrix` 
+2. `outp.dir` 
+3. `output.filename` 
+4. `correlation.cutoff` 
+
 
 
 
 ```r
-celltag.jac <- JaccardAnalysis(whitelisted.celltag.data = celltag.filt, plot.corr = FALSE)
+#R
+mef.sim <- JaccardAnalysis(whitelisted.celltag.data = mef.filt, plot.corr = FALSE)
 
-clones <- CloneCalling(Jaccard.Matrix = celltag.jac, output.dir = "./", output.filename = "hf1.d15.v1.clones.csv", correlation.cutoff = 0.7)
+d3.sim <- JaccardAnalysis(whitelisted.celltag.data = d3.filt, plot.corr = FALSE)
+
+d13.sim <- JaccardAnalysis(whitelisted.celltag.data = d13.filt, plot.corr = FALSE)
+
+
+mef.clones <- CloneCalling(Jaccard.Matrix = mef.sim, output.dir = "./", output.filename = "hf1.d15.v1.clones.csv", correlation.cutoff = 0.7)
+
+d3.clones <- CloneCalling(Jaccard.Matrix = d3.sim, output.dir = "./", output.filename = "hf1.d15.v2.clones.csv", correlation.cutoff = 0.7)
+
+d13.clones <- CloneCalling(Jaccard.Matrix = d13.sim, output.dir = "./", output.filename = "hf1.d15.v3.clones.csv", correlation.cutoff = 0.7)
 ```
 
 
