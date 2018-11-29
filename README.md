@@ -1,4 +1,3 @@
-
 # CellTag Workflow
 
 This repository contains our CellTag workflow.
@@ -263,11 +262,11 @@ The clone calling is performed using the function `CloneCalling`.
 
 ```r
 #R
-mef.sim <- JaccardAnalysis(whitelisted.celltag.data = mef.filt, plot.corr = FALSE)
+mef.sim <- JaccardAnalysis(whitelisted.celltag.data = mef.filt, plot.corr = FALSE, id = "mef")
 
-d3.sim <- JaccardAnalysis(whitelisted.celltag.data = d3.filt, plot.corr = FALSE)
+d3.sim <- JaccardAnalysis(whitelisted.celltag.data = d3.filt, plot.corr = FALSE, id = "d3")
 
-d13.sim <- JaccardAnalysis(whitelisted.celltag.data = d13.filt, plot.corr = FALSE)
+d13.sim <- JaccardAnalysis(whitelisted.celltag.data = d13.filt, plot.corr = FALSE, id = "d13")
 
 
 mef.clones <- CloneCalling(Jaccard.Matrix = mef.sim, output.dir = "./", output.filename = "hf1.d15.v1.clones.csv", correlation.cutoff = 0.7)
