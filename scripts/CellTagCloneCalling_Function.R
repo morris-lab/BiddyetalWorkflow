@@ -118,25 +118,26 @@ MetricBasedFiltering <- function(whitelisted.celltag.data, cutoff, comparison = 
 #' @param save.mtx Would you like to save the jaccard matrix? Default to TRUE. Save the matrix to the working directory.
 #' @param plot.corr Would you like to plot the correlation matrix?
 #' @param save.plot Would you like to save the plot? Save the plot to the working directory.
+#' @param id Unique id for output files.
 #' @return The jaccard matrix
 #' @keywords single-cell RNA-seq data, CellTagging
 #' @export
 #' @examples
 #' JaccardAnalysis(celltags.whitelisted)
 #'
-JaccardAnalysis <- function(whitelisted.celltag.data, save.mtx = TRUE, plot.corr = TRUE, save.plot = TRUE) {
+JaccardAnalysis <- function(whitelisted.celltag.data, save.mtx = TRUE, plot.corr = TRUE, save.plot = TRUE, id) {
   # Calculating the Jaccard matrix
   Jac <- proxy::simil(whitelisted.celltag.data, method = "Jaccard")
   Jac <- as.matrix(Jac)
   if (save.mtx) {
-    saveRDS(Jac, paste0(getwd(), "/Jaccard_mtx.RDS"))
+    saveRDS(Jac, paste0(getwd(), "/", id, "_Jaccard_mtx.RDS"))
   }
   
   if (plot.corr) {
     diag(Jac) <- 1
     p1 <- corrplot::corrplot(Jac, method="color", order="hclust", hclust.method ="ward.D2", cl.lim=c(0,1), tl.cex=0.1)
     if (save.plot) {
-      pdf(paste0(getwd(), "/Jaccard_correlation_plot.pdf"), width = 20, height = 20, paper = "special")
+      pdf(paste0(getwd(), "/", id, "_Jaccard_correlation_plot.pdf"), width = 20, height = 20, paper = "special")
       print(p1)
       dev.off()
     } else {

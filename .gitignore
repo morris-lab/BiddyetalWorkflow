@@ -39,8 +39,10 @@ rsconnect/
 *.celltag.parsed.tsv
 *.celltag.reads.out
 hf1.d15.*
+*.Rds
+*.RDS
 
 #Intermediate knitr files
-README.Rmd
-README.pdf
-README.html
+README.*
+
+!README.md

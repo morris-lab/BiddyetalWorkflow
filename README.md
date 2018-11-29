@@ -1,3 +1,13 @@
+---
+title: "CellTag Workflow"
+author: "Brent Biddy"
+date: "2018-11-29"
+output:
+  html_document:
+    keep_md: TRUE
+  pdf_document: default
+---
+
 # CellTag Workflow
 
 This repository contains our CellTag workflow.
@@ -116,10 +126,14 @@ This step should be run for each CellTag version independently.
 
 ```bash
 #bash
+
+#MEF
 Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v1.celltag.parsed.tsv hf1.d15.v1
 
+#D3
 Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v2.celltag.parsed.tsv hf1.d15.v2
 
+#D13
 Rscript ./scripts/matrix.count.celltags.R ./cell.barcodes/hf1.d15.barcodes.tsv v3.celltag.parsed.tsv hf1.d15.v3
 
 ```
