@@ -253,9 +253,15 @@ With the Jaccard similarities between each cell calculated we can now identify c
 The clone calling is performed using the function `CloneCalling`.
 
 1. `Jaccard.Matrix` 
+  + Object containing Jaccard similarities between each cell.
 2. `outp.dir` 
+  + Directory to save output files in.
 3. `output.filename` 
+  + Filename to use for output file.
 4. `correlation.cutoff` 
+  + The minimum Jaccard similarity between clonally related cells.
+  
+This function takes the Jaccard similarities and identifies clones of cells with a similarity greater than or equal to the cutoff. The function returns a list of two data frames. One with a list of Cell Barcodes and the clone it belongs to, and the other with a table of the number of cells in each clone. 
 
 
 
