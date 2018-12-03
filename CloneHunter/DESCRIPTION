@@ -1,0 +1,16 @@
+Package: CloneHunter
+Title: Identify Clonal Identity from ScRNA-Seq and CellTag Data
+Version: 0.0.0.9000
+Authors@R: person("Samantha", "Morris", email = "s.morris@wustl.edu", role = c("aut", "cre"))
+Description: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Description >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Depends: R (>= 3.5.0),
+    gridExtra,
+    tools,
+    proxy,
+    corrplot,
+    igraph,
+    data.table
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.0.9000
