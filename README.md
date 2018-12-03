@@ -306,6 +306,7 @@ output.path <- "./celltag_extracted_v2-1_r1.txt"
 extracted.cell.tags <- CellTagExtraction(fastq.bam.input = fpath, celltag.version = "v2", extraction.output.filename = output.path, save.fullTag = FALSE, save.onlyTag = FALSE)
 ```
 The extracted CellTag - `extracted.cell.tags` variable - is a list of two vectors as following.
+
 |First Vector-`extracted.cell.tags[[1]]`|Second Vector-`extracted.cell.tags[[1]]` |
 |:-------------------------------------:|:---------------------------------------:|
 |Full CellTag with conserved regions    |8nt CellTag region                       |
