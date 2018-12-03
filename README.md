@@ -294,9 +294,21 @@ Install the package from GitHub.
 library("devtools")
 devtools::install_github("morris-lab/CellTagWorkflow", subdir = "CloneHunter")
 ```
-In the first section, we would like to evaluate the CellTag library complexity using sequencing. Following is an example using the sequencing data we generated in lab for pooled CellTag library V2.
-### 1. Load the dataset
-
+## Assessment of CellTag Library Complexity via Sequencing
+In the first section, we would like to evaluate the CellTag library complexity using sequencing. Following is an example using the sequencing data we generated in lab for pooled CellTag library V2. 
+### 1. Read in the fastq sequencing data and extract the CellTags
+#### Note: This function is still under construction for extension to accept BAM file as input file. Currently it only works with FASTQ files.
+```r
+# Read in data file that come with the package
+fpath <- system.file("extdata", "V2-1_S2_L001_R1_001.fastq", package = "CloneHunter")
+output.path <- "./celltag_extracted_v2-1_r1.txt"
+# Extract the CellTags
+extracted.cell.tags <- CellTagExtraction(fastq.bam.input = fpath, celltag.version = "v2", extraction.output.filename = output.path, save.fullTag = FALSE, save.onlyTag = FALSE)
+```
+The extracted CellTag - `extracted.cell.tags` variable - is a list of two vectors as following.
+|First Vector-`extracted.cell.tags[[1]]`|Second Vector-`extracted.cell.tags[[1]]` |
+|:-------------------------------------:|:---------------------------------------:|
+|Full CellTag with conserved regions    |8nt CellTag region                       |
 
 
 
