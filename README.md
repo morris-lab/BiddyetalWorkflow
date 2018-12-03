@@ -305,12 +305,30 @@ output.path <- "./celltag_extracted_v2-1_r1.txt"
 # Extract the CellTags
 extracted.cell.tags <- CellTagExtraction(fastq.bam.input = fpath, celltag.version = "v2", extraction.output.filename = output.path, save.fullTag = FALSE, save.onlyTag = FALSE)
 ```
-The extracted CellTag - `extracted.cell.tags` variable - is a list of two vectors as following.
+The extracted CellTag - `extracted.cell.tags` variable - contains a list of two vectors as following.
 
 |First Vector-`extracted.cell.tags[[1]]`|Second Vector-`extracted.cell.tags[[1]]` |
 |:-------------------------------------:|:---------------------------------------:|
 |Full CellTag with conserved regions    |8nt CellTag region                       |
 
+### 2. Count the CellTags and sort based on occurrence of each CellTag
+```r
+# Count the occurrence of each CellTag
+cell.tag.count <- as.data.frame(table(extracted.cell.tags[[2]]), stringsAsFactors = F)
+# Sort the CellTags in descending order of occurrence
+cell.tag.count.sort <- cell.tag.count[order(-cell.tag.count$Freq), ]
+colnames(cell.tag.count.sort) <- c("CellTag", "Count")
+```
+
+### 3. Generation of whitelist for this CellTag library
+Here are are generating the whitelist for this CellTag library - CellTag V2. This will remove the CellTags with an occurrence number below the threshold. The threshold (using 90th percentile as an example) is determined via - Cutoff = floor[(90th quantile)/10]. The percentile can be changed while calling the function. Occurrence scatter plots are saved under the `output.dir`, which could be further used to determine the percentile for each different CellTag library.
+
+```r
+whitelisted.cell.tag <- CellTagWhitelistFiltering(count.sorted.table = cell.tag.count.sort, percentile = 0.9, output.dir="./", output.file = "my_favourite_v1.csv", save.output = TRUE)
+```
+The generated whitelist for each library can be used to filter and clean the single-cell CellTag UMI matrices.
+
+## Clone Calling
 
 
 # 3. Lineage and Network Visualization
