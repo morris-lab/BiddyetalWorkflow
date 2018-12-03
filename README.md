@@ -282,6 +282,23 @@ d3.clones <- CloneCalling(Jaccard.Matrix = d3.sim, output.dir = "./", output.fil
 d13.clones <- CloneCalling(Jaccard.Matrix = d13.sim, output.dir = "./", output.filename = "hf1.d15.v3.clones.csv", correlation.cutoff = 0.7)
 ```
 
+# Alternative R Package - CloneHunter Workflow
+This is a wrapped package of the above workflow with additional checks on the Celltag Library sequences. This package have a dependency on R version (R >= 3.5.1). This can be used as an alternative approach for this pipeline.
+
+(You might need to install devtools to be able to install from Github first)
+```r
+install.packages("devtools")
+```
+Install the package from GitHub.
+```r
+library("devtools")
+devtools::install_github("morris-lab/CellTagWorkflow", subdir = "CloneHunter")
+```
+In the first section, we would like to evaluate the CellTag library complexity using sequencing. Following is an example using the sequencing data we generated in lab for pooled CellTag library V2.
+### 1. Load the dataset
+
+
+
 
 # 3. Lineage and Network Visualization
 
