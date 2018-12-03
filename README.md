@@ -165,11 +165,11 @@ The `SingleCellDataBinarization` function take the following arguments:
 
 ```r
 #R
-mef.mat <- readRDS("./hf1.d15.v1.celltag.matrix.Rds")
+mef.mat <- as.data.frame(readRDS("./hf1.d15.v1.celltag.matrix.Rds"))
 
-d3.mat <- readRDS("./hf1.d15.v2.celltag.matrix.Rds")
+d3.mat <- as.data.frame(readRDS("./hf1.d15.v2.celltag.matrix.Rds"))
 
-d13.mat <- readRDS("./hf1.d15.v3.celltag.matrix.Rds")
+d13.mat <- as.data.frame(readRDS("./hf1.d15.v3.celltag.matrix.Rds"))
 
 rownames(mef.mat) <- mef.mat$Cell.BC
 
@@ -290,6 +290,7 @@ Load functions required for CellTag lineage network construction and Visualizati
 
 ```r
 # this script require “foreach” and "networkD3" package. Please install them beforehand.
+library(tidyverse)
 library(foreach)
 library(networkD3)
 
@@ -306,8 +307,39 @@ Load Celltag data.
 # See the example (./input_data_for_network_construction/)
 
 # load celltag table
-celltag_data <- read.table(PATH_TO_YOUR_CELLTAG_TABLE, stringsAsFactors = F)
-head(celltag_data)
+
+mef.clones <- read_csv(file = "hf1.d15.v1.clones.csv")
+
+d3.clones <- read_csv(file = "hf1.d15.v2.clones.csv")
+  
+d13.clones <- read_csv(file = "hf1.d15.v3.clones.csv")
+
+
+colnames(mef.clones)[1] <- "CellTagV1"
+
+colnames(d3.clones)[1] <- "CellTagV2"
+
+colnames(d13.clones)[1] <- "CellTagV3"
+
+clone.cells <- unique(c(mef.clones$cell.barcode, d3.clones$cell.barcode, d13.clones$cell.barcode))
+
+celltag_data <- data.frame(clone.cells, row.names = clone.cells)
+
+celltag_data$CellTagV1 <- NA
+
+celltag_data$CellTagV2 <- NA
+
+celltag_data$CellTagV3 <- NA
+
+celltag_data[mef.clones$cell.barcode, "CellTagV1"] <- mef.clones$CellTagV1
+
+celltag_data[d3.clones$cell.barcode, "CellTagV2"] <- d3.clones$CellTagV2
+
+celltag_data[d13.clones$cell.barcode, "CellTagV3"] <- d13.clones$CellTagV3
+
+celltag_data <- celltag_data[, -1]
+
+row.names(celltag_data) <- paste0(rownames(celltag_data), "-1")
 ```
 Construct Network.
 
@@ -338,8 +370,9 @@ head(Nodes)
 # the rownames of additional_data should be same format as “node_name_unmodified” in Nedes
 # See the example (./input_data_for_network_construction/meta_data.txt)
 
-additional_data <- read.table(PATH_TO_YOUR_ADDITIONAL_DATA_TABLE, stringsAsFactors = F)
+additional_data <- data.frame(sample(1:10, size = length(row.names(celltag_data)), replace = TRUE), row.names = row.names(celltag_data))
 Nodes <- addData2Nodes(Nodes, additional_data)
+colnames(Nodes)[4] <- "Cluster"
 head(Nodes)
 ```
 
@@ -375,6 +408,26 @@ Visualize subnetwork as Force-directed network
 # Parameters
 # tag: CellTag clone id
 # overlay: you can overlay information on network graph
-drawSubnet(tag = "CellTagV1_108", overlay = "Reprogramming.Day", linkList = linkList, Nodes = Nodes )
+drawSubnet(tag = "CellTagV1_2", overlay = "Cluster", linkList = linkList, Nodes = Nodes )
 ```
 
+
+Reshape data for ggplot2
+
+
+
+```r
+bar.data <- celltag_data
+
+bar.data$Cell.BC <- row.names(bar.data)
+
+bar.data <- gather(bar.data, key = "CellTag", value = "Clone", 1:3, na.rm = FALSE)
+```
+
+
+Plot Stacked Bar Chart
+
+
+```r
+ggplot(data = bar.data) + geom_bar(mapping = aes(x = CellTag, fill = factor(Clone)), position = "fill", show.legend = FALSE) + scale_y_continuous(labels = scales::percent_format())
+```
