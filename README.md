@@ -24,6 +24,12 @@ We are using the data from Day 15 because we should be able to call clones using
 
 You can follow along with this workflow by cloning or downloading this repository and executing the commands, using the appropriate paths for the data you are processing.
 
+```bash
+#bash
+git clone https://github.com/morris-lab/CellTagWorkflow PATH_TO_LOCAL_REPO_DEST
+
+```
+
 The workflow is a combination of bash and r commands, which will be identified with using comments in the code.
 
 # 1. CellTag Extraction and Quantification
@@ -81,6 +87,13 @@ This command calls the script `celltag.parse.reads.10x.sh` from the script direc
   
 Finally, the output from this script is written to the file v1.celltag.parsed.tsv
 
+Note that you may have to change the permissions of `celltag.parse.reads.10x.sh` with the following line:
+
+```bash
+#bash
+chmod +x celltag.parse.reads.10x.sh
+
+```
 
 ```bash
 #bash
