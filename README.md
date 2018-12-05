@@ -5,6 +5,8 @@
 
 This repository contains our CellTag workflow.
 
+The article can be found [here](https://www.nature.com/articles/s41586-018-0744-4)
+
 Here is the link to the GEO DataSet which contains all of the sequencing data we generated.
 
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE99915
