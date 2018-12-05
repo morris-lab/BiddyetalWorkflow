@@ -1,4 +1,6 @@
 
+![](./scripts/celltag.final.gif)
+
 # CellTag Workflow
 
 This repository contains our CellTag workflow.
