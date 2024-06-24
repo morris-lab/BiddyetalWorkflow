@@ -1,0 +1,159 @@
+---
+title: "Quadratic Programming Workflow"
+output:
+  html_document:
+    theme: united
+    keep_md: TRUE
+params:
+  data.path: "/here/"
+  reference.path: "/here/"
+  output.path: "/here/"
+  top.gene.path: "NULL"
+  data.type: "seurat"
+  project.name: "QP_data_analysis"
+  cell.type.info.avail: FALSE
+  reference.logged: FALSE
+  unix.parallel: FALSE
+  windows.parallel: FALSE
+  force.eq: TRUE
+  parallel.cores: 4
+  top.gene.counts: 1000
+
+---
+
+This is the code to call the function in collective functions to execute quadratic programming on the give reference bulk transcriptome with user-generated single cell data.
+
+### Import the source code.
+#### Remember to change the directory of the source file when using.
+```{r, echo=FALSE, message=FALSE, results='hide', warning=FALSE}
+source("/scratch/smlab/CellTag_paper_analysis/quad_prog/src/quad_prog_collective_functions.R")
+```
+
+### Check the parameters
+```{r, results = 'hold'}
+print(params)
+```
+
+### Generate/read the top n (given by user) variable genes symbols/Ensembl ID that identified from KeyGenes.
+```{r, results='hide'}
+top.number.count <- params$top.gene.counts
+if (as.character(params$top.gene.path) == "NULL") {
+  top.genes(params$reference.path, params$output.path, top.number.count = params$top.gene.counts)
+  top.gene.dir <- paste0(output.dir, "top", top.number.count, "genes.txt")
+  top.variable.genes <- read.table(top.gene.dir, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+} else {
+  top.variable.genes <- read.table(params$top.gene.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE)
+}
+```
+
+### If the top variable genes are ensembl gene IDs, import the ensembl gene ID to gene symbol mapping dataset and get the gene symbol set that is included in the top n differentially expressed genes identified above.
+```{r, result = 'hide'}
+ensembl.gene.ID.bool <- grepl("ENSG", top.variable.genes[, 1])
+ensembl.use <- (sum(ensembl.gene.ID.bool > (0.6 * nrow(top.variable.genes))))
+if (ensembl.use) {
+  ensembl.to.gene <- read.table("/scratch/smlab/CellTag_paper_analysis/quad_prog/src/ensembl_to_gene.txt", 
+                                sep = " ", header = TRUE, stringsAsFactors = FALSE)
+  # Get the genes that are in the top n genes
+  top.gene.sym <- ensembl.to.gene[which(ensembl.to.gene$ensembl_id %in% top.variable.genes[, 1]),]
+  # Set a data frame for mapping
+  gene.id.mapping <- data.frame(row.names = top.gene.sym$ensembl_id, gene.sym = top.gene.sym$gene_symbol, stringsAsFactors = FALSE)
+  # Get the top n gene list
+  top.gene.sym <- top.gene.sym$gene_symbol
+} else {
+  top.gene.sym <- top.variable.genes[, 1]
+}
+```
+
+### Import the single cell transcriptome and get the expression profile of the genes in the top n genes. 
+#### Three different data types are available for processing currently, including scater normalized RDS object, seurat RData object and a dge txt table. Further file type can be considered to be added.
+```{r, echo=FALSE, message=FALSE, results='hide', warning=FALSE}
+if (params$data.type == "scater") {
+  # Get the scater data
+  sc.dataset <- readRDS(params$data.path)
+  if (params$cell.type.info.avail) {
+    # Get the cell type information 
+    celltype.df <- data.frame(row.names = rownames(sc.dataset@phenoData@data), 
+                              cell_type = sc.dataset@phenoData@data$cell_type1, stringsAsFactors = FALSE)
+  }
+  # Get the expression profile
+  rownames(sc.dataset) <- rowData(sc.dataset)$symbol
+  keep.genes <- unique(rownames(sc.dataset))
+  sc.dataset <- sc.dataset[keep.genes, ]
+  sc.dt <- logcounts(sc.dataset)
+}
+if (params$data.type == "seurat") {
+  pri.variables <- c(ls(globalenv()), "pri.variables")
+  load(params$data.path)
+  aft.variables <- ls(globalenv())
+  sc.obj <- aft.variables[which(!(aft.variables %in% pri.variables))]
+  sc.seurat.obj <- get(sc.obj)
+  sc.dt <- sc.seurat.obj@scale.data
+}
+if (params$data.type == "txt") {
+  sc.dt <- fread(params$data.path, data.table = FALSE, stringsAsFactors = FALSE)
+  colnm <- readLines(params$data.path, n = 1)
+  colnm <- strsplit(colnm, "\t")[[1]]
+  colnm <- c("Gene", colnm)
+  colnames(sc.dt) <- colnm
+  rownm <- sc.dt$Gene
+  sc.dt <- sc.dt[, -"Gene"]
+  rownames(sc.dt) <- rownm
+}
+
+# Get the gene list in the top n genes
+top.sc <- sc.dt[which(tolower(rownames(sc.dt)) %in% tolower(top.gene.sym)), ]
+# Give the overlap genes as another vector
+over.lap.sc <- rownames(top.sc)
+if (ensembl.use) {
+  over.lap.sc.eid <- rownames(gene.id.mapping)[which(gene.id.mapping$gene.sym %in% over.lap.sc)]
+}
+```
+
+### Import reference transcriptome dataset and get the expression profile of the top genes.
+```{r, results='hide'}
+ref.dt.set <- read.table(params$reference.path, sep = "\t", header = TRUE, stringsAsFactors = FALSE, row.names = 1)
+
+# If the reference has Ensembl ID as rownames
+ensembl.gene.ID.bool.ref <- grepl("ENSG", rownames(ref.dt.set))
+ensembl.use.ref <- (sum(ensembl.gene.ID.bool.ref > (0.6 * nrow(ref.dt.set))))
+if (ensembl.use.ref) {
+  # Set the row names of the data frame to be the gene symbol instead of the ensembl ID
+  nms <- gene.id.mapping[rownames(ref.dt.set), ]
+  rownames(ref.dt.set) <- nms
+}
+
+# Get the reference expression profile for the top n genes identified above
+top.ref.dt.set <- ref.dt.set[which(rownames(ref.dt.set) %in% over.lap.sc), ]
+
+# Get the overlapped expression profile
+over.lap.ref <- top.ref.dt.set[over.lap.sc, ]
+
+if (!params$reference.logged) {
+  # Log2 normalize the reference
+  over.lap.ref <- log2(over.lap.ref + 1)
+}
+```
+
+### Execute quadratic programming in the source code file.
+```{r, results='hold'}
+X <- as.matrix(over.lap.ref)
+# Quick comparison of runtime
+# For unix/linux based system parallelization
+if (params$unix.parallel) {
+  system.time(identity.mx <- sc.quad.prog.run(X,top.sc, unix.parallel = params$unix.parallel, 
+                                              parallel.cores = params$parallel.cores, force.eq = params$force.eq))
+} else {
+  # For windows based system parallelization
+  if (params$windows.parallel) {
+    system.time(identity.mx <- sc.quad.prog.run(X, top.sc, windows.parallel = params$windows.parallel, 
+                                                parallel.cores = params$parallel.cores, force.eq = params$force.eq))
+  } else {
+    # For regular use, running in serial
+    system.time(identity.mx <- sc.quad.prog.run(X, top.sc))
+  }
+}
+output.dir <- paste0(params$output.path, params$project.name, ".csv")
+write.csv(identity.mx, output.dir, row.names = FALSE)
+```
+
+### Plots can be generated based on the score saved in the previous chunk
